@@ -1,0 +1,24 @@
+#!/bin/sh
+module="CryptoPipe"
+device="cpipe"
+mode="ugo+wx"
+
+#загружаем модуль 
+/sbin/insmod ./$module.ko $* || exit 1
+
+#удаляем узлы файловой системы, если они существуют
+rm -f /dev/${device}[0-3]
+
+#определяем присвоенный модулю старший номер, анализируя /proc/devices
+major=$(awk "\$2==\"$module\" {print \$1}" /proc/devices)
+
+#создаем новые файлы усторйств
+mknod /dev/${device}0 c $major 0
+mknod /dev/${device}1 c $major 1
+mknod /dev/${device}2 c $major 2
+mknod /dev/${device}3 c $major 3
+
+#изменяем права доступа у созданных файлов
+chmod $mode /dev/${device}[0-3]
+
+
